@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { analyzeFiles } from '../api/apiservice';
-import { UploadIcon, FileIcon, TrashIcon } from './Icons';
+import { UploadIcon, FileIcon, TrashIcon } from './icons';
 
 const FileInput = ({ label, onFileChange, multiple = false }) => (
     <div>
