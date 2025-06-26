@@ -105,7 +105,7 @@ export default function FileUpload({ setAnalysisData, setIsLoading, setError, is
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 bg-blue-700"></div>
               <span>Analyzing...</span>
             </>
           ) : (

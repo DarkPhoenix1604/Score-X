@@ -1,6 +1,6 @@
 export default function WordCloudDisplay({ title, fileName, wordCloudPath }) {
   // Get the base URL for the backend from environment variables.
-  // This will be your Render URL in production, or an empty string for local dev.
+  // This will be your Render URL in production.
   const API_URL = import.meta.env.VITE_API_URL || '';
 
   // Construct the full, absolute URL to the image on the backend server.
@@ -12,7 +12,7 @@ export default function WordCloudDisplay({ title, fileName, wordCloudPath }) {
   return (
     <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center">
       <h4 className="font-semibold text-slate-700 mb-1">{title}</h4>
-      <p className="text-xs text-slate-500 mb-3 truncate w-full text-center" title={fileName}>{fileName}</p>
+      <p className="text-xs text-slate-500 mb-3 truncate w-full text-center" title={fileName}>{p}</p>
       <img
         src={imageUrl}
         alt={`Word cloud for ${fileName}`}
