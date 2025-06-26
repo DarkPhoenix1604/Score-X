@@ -101,11 +101,11 @@ export default function FileUpload({ setAnalysisData, setIsLoading, setError, is
         <button
           type="submit"
           disabled={isLoading || !jdFile || resumeFiles.length < 2}
-          className="w-full border-blue-500 bg-blue-300 text-black font-bold py-3 px-4 rounded-lg hover:bg-primary-hover transition-all duration-300  disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full border-blue-500 bg-blue-300 text-black font-bold py-3 px-4 rounded-lg hover:bg-primary-hover transition-all duration-300  disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 bg-blue-700"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 "></div>
               <span>Analyzing...</span>
             </>
           ) : (
