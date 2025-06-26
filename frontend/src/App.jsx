@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import FileUpload from './components/fileupload';
 import Dashboard from './components/dashboard';
-import GithubIcon from './components/icons'
+import {GithubIcon} from './components/icons'
 
 
 function App() {
