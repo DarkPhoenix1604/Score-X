@@ -1,60 +1,81 @@
 import { useState } from 'react';
 import { analyzeFiles } from '../api/apiservice';
-import { UploadIcon, FileIcon, TrashIcon } from './icons';
+import { UploadCloud, File, Trash2, Loader, Send } from 'lucide-react'; // Using lucide-react for modern icons
 
-const FileInput = ({ label, onFileChange, multiple = false }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">{label}</label>
-        <input
-            type="file"
-            multiple={multiple}
-            onChange={onFileChange}
-            className="block w-full text-sm text-slate-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-lg file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100 transition-colors"
-        />
-    </div>
-);
+// A single, reusable component for the dropzone UI
+const Dropzone = ({ onFilesAdded, multiple, label, acceptedFileTypes, files }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
 
-const FileList = ({ files, onRemove }) => (
-    <ul className="space-y-2">
-        {Array.from(files).map((file, index) => (
-            <li key={index} className="flex items-center justify-between bg-slate-100 p-2 rounded-lg">
-                <div className="flex items-center gap-2">
-                    <FileIcon />
-                    <span className="text-sm text-slate-700">{file.name}</span>
-                </div>
-                <button onClick={() => onRemove(index)} className="text-slate-500 hover:text-red-500 transition-colors">
-                    <TrashIcon />
-                </button>
-            </li>
-        ))}
-    </ul>
-);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
 
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files) {
+      onFilesAdded(e);
+    }
+  };
+
+  const fileCountText = files.length > 0
+    ? `${files.length} file${files.length > 1 ? 's' : ''} selected`
+    : `Drag & drop or click to upload`;
+
+  return (
+    <label
+      htmlFor={label}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300
+        ${isDragOver ? 'border-cyan-400 bg-white/10' : 'border-white/20 hover:bg-white/5'}`}
+    >
+      <div className="flex flex-col items-center justify-center text-center">
+        <UploadCloud className="w-10 h-10 mb-4 text-gray-400" />
+        <p className="mb-2 text-base text-white/90 font-semibold">{label}</p>
+        <p className={`text-sm ${files.length > 0 ? 'text-cyan-400' : 'text-gray-500'}`}>{fileCountText}</p>
+        <p className="text-xs text-gray-500 mt-1">{acceptedFileTypes}</p>
+      </div>
+      <input
+        id={label}
+        type="file"
+        multiple={multiple}
+        onChange={onFilesAdded}
+        className="hidden"
+      />
+    </label>
+  );
+};
 
 export default function FileUpload({ setAnalysisData, setIsLoading, setError, isLoading }) {
   const [jdFile, setJdFile] = useState(null);
   const [resumeFiles, setResumeFiles] = useState([]);
 
   const handleJdChange = (e) => {
-    if (e.target.files.length) {
-      setJdFile(e.target.files[0]);
-    }
+    const file = e.target.files && e.target.files[0];
+    if (file) setJdFile(file);
   };
 
   const handleResumesChange = (e) => {
-    if (e.target.files.length) {
-      // Allow up to 10 resume files
-      setResumeFiles(Array.from(e.target.files).slice(0, 10));
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length > 0) {
+      setResumeFiles(prev => [...prev, ...files].slice(0, 10)); // Allow adding more files up to 10
     }
   };
-  
+
   const removeResume = (indexToRemove) => {
-      setResumeFiles(resumeFiles.filter((_, index) => index !== indexToRemove));
+    setResumeFiles(resumeFiles.filter((_, index) => index !== indexToRemove));
+  };
+  
+  const removeJd = () => {
+    setJdFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -63,7 +84,7 @@ export default function FileUpload({ setAnalysisData, setIsLoading, setError, is
       setError('Please upload a job description and at least two resumes.');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
 
@@ -78,41 +99,86 @@ export default function FileUpload({ setAnalysisData, setIsLoading, setError, is
     }
   };
 
+  const canSubmit = !isLoading && jdFile && resumeFiles.length >= 2;
+
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <div className="w-full max-w-3xl mx-auto bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-2xl transform transition-all duration-300 hover:shadow-purple-500/20">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-slate-800">Upload Your Documents</h2>
-        <p className="text-slate-500 mt-2">Provide a job description and resumes to begin the analysis.</p>
+        <h2 className="text-4xl font-bold text-white tracking-tight">AI-Powered Resume Analysis</h2>
+        <p className="text-slate-300 mt-2">Upload a job description and multiple resumes to find the best fit.</p>
       </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-            <FileInput label="Job Description (1 file)" onFileChange={handleJdChange} />
-            {jdFile && <p className="text-sm text-slate-600 mt-2 ml-2 flex items-center gap-2"><FileIcon/> {jdFile.name}</p>}
-        </div>
-         <div>
-            <FileInput label="Resumes (2-10 files)" onFileChange={handleResumesChange} multiple />
-            {resumeFiles.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-sm font-medium text-slate-600 mb-2">Selected Resumes:</h3>
-                    <FileList files={resumeFiles} onRemove={removeResume} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Job Description Dropzone */}
+          <div>
+            <Dropzone
+              label="Job Description"
+              onFilesAdded={handleJdChange}
+              acceptedFileTypes="PDF, DOCX"
+              files={jdFile ? [jdFile] : []}
+            />
+            {jdFile && (
+              <div className="mt-3 bg-white/5 p-2.5 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <File className="w-5 h-5 text-cyan-400" />
+                  <span className="text-sm text-white/80 truncate">{jdFile.name}</span>
                 </div>
+                <button onClick={removeJd} className="text-gray-500 hover:text-red-400 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )}
+          </div>
+
+          {/* Resumes Dropzone */}
+          <div>
+            <Dropzone
+              label="Resumes"
+              onFilesAdded={handleResumesChange}
+              multiple
+              acceptedFileTypes="Up to 10 files (PDF, DOCX)"
+              files={resumeFiles}
+            />
+          </div>
         </div>
+
+        {/* Resume File List */}
+        {resumeFiles.length > 0 && (
+          <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+            {resumeFiles.map((file, index) => (
+              <div key={index} className="bg-white/5 p-2.5 rounded-lg flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <File className="w-5 h-5 text-purple-400" />
+                  <span className="text-sm text-white/80 truncate">{file.name}</span>
+                </div>
+                <button onClick={() => removeResume(index)} className="text-gray-500 hover:text-red-400 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading || !jdFile || resumeFiles.length < 2}
-          className="w-full border-blue-500 bg-blue-300 text-black font-bold py-3 px-4 rounded-lg hover:bg-primary-hover transition-all duration-300  disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+          disabled={!canSubmit}
+          className="w-full flex items-center justify-center gap-3 text-lg font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform
+            bg-gradient-to-r from-cyan-500 to-blue-500 text-white
+            hover:from-cyan-400 hover:to-blue-400 hover:scale-[1.02]
+            disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed disabled:scale-100"
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 "></div>
+              <Loader className="animate-spin h-6 w-6" />
               <span>Analyzing...</span>
             </>
           ) : (
-             <>
-                <UploadIcon />
-                <span>Analyze Documents</span>
-             </>
+            <>
+              <Send className="h-6 w-6" />
+              <span>Analyze Documents</span>
+            </>
           )}
         </button>
       </form>
