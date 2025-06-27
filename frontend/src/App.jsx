@@ -1,6 +1,6 @@
 import { useState } from "react";
-import FileUpload from "./components/FileUpload";
-import Dashboard from "./components/Dashboard";
+import FileUpload from "./components/fileupload";
+import Dashboard from "./components/dashboard";
 import {
   SignedIn,
   SignedOut,
